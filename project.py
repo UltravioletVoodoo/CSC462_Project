@@ -9,6 +9,11 @@ import threading
 import sys
 from pysyncobj import SyncObj, replicated
 
+'''
+holds a history of all commands applied to redis
+replicated over all nodes so all nodes can apply 
+same command to local redis
+'''
 class Raft(SyncObj):
 	def __init__(self, selfNodeAddr, otherNodeAddrs):
 		super(Raft, self).__init__(selfNodeAddr, otherNodeAddrs)
@@ -26,6 +31,7 @@ class Raft(SyncObj):
 		self.__history.append(command)
 		return self.__history
 
+#if there is an unapplied command, apply it
 def updateRedis(red, raft):
 	localCount = 0
 	while(True):
@@ -33,31 +39,39 @@ def updateRedis(red, raft):
 			processCommand(red, raft.getHistory()[localCount])
 			localCount+= 1
 
+#process a command, might want to make this better
 def processCommand(red, command):
 	if command["command"] == "set":
 		red.set(command["key"], command["value"])
 	else:
 		print("oops")
 
-def redisOperation(r, raft):
+#gets stuff from command line, and responds apropriately
+def commandLineOperation(r, raft):
+	toRedis = {}
 	while(True):
 		command = input(">> ")
+		#display a value
 		if command == "get":
 			commandGet = input("get>> ")
 			print(r.get(commandGet))
-		elif command == "set":
+		#modify local database without going
+		#through raft, take this out once 
+		#testing is done
+		elif command == "force":
 			commandSet = input("set>> ")
 			commandSetTo = input("set:to>> ")
 			print(r.set(commandSet, commandSetTo))
-		elif command == "test":
-			testy = {}
-			testy["command"] = "set"
-			testy["key"] = "foo"
-			testy["value"] = "bar"
-			raft.addRedis(testy)
-			print(raft.getHistory())
+		#set a key value pair though raft
+		elif command == "set":
+			toRedis["command"] = "set"
+			toRedis["key"] = input("set>> ")
+			toRedis["value"] = input("set:to>> ")
+			raft.addRedis(toRedis)
+		#get some back end info
 		elif command == "info":
 			print(raft.isReady())
+			print(raft.getHistory())
 		else:
 			print("oops")
 
@@ -80,4 +94,4 @@ update = threading.Thread(target=updateRedis, args=(red, raft, ), daemon=True)
 update.start()
 
 #start getting redis operations from the command line
-redisOperation(red, raft)
+commandLineOperation(red, raft)
