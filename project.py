@@ -30,7 +30,7 @@ def updateRedis(red, raft):
 	localCount = 0
 	while(True):
 		if localCount < raft.getIndex():
-			processCommand(red, raft.history[localCount])
+			processCommand(red, raft.getHistory()[localCount])
 			localCount+= 1
 
 def processCommand(red, command):
@@ -56,6 +56,8 @@ def redisOperation(r, raft):
 			testy["value"] = "bar"
 			raft.addRedis(testy)
 			print(raft.getHistory())
+		elif command == "info":
+			print(raft.isReady())
 		else:
 			print("oops")
 
