@@ -1,0 +1,38 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Floating Database</title>
+  <meta name="description" content="Floating Database">
+
+  <link rel="stylesheet" href="css/styles.css?v=1.0">
+</head>
+
+<body>
+    <h1>Floating Database</h1>
+    <form action="/request", method="GET">
+        <input id="radio-get" type="radio" name="cmd" value="get" checked onclick="disableValue();">
+        <label for="radio-get">Get</label>
+        <input id="radio-set" type="radio" name="cmd" value="set" onclick = "enableValue();">
+        <label for="radio-set">Set</label>
+        <br>
+        <input type="text" name="key"> Key</input><br>
+        <input id="input-value" type="text" name="value" disabled> Value</input><br>
+        <input type="submit">
+    </form>
+
+    {% if noneReturned %}
+    <h2>Nothing matched key</h2>
+    {% else %}
+    {% if get|length > 0 %}
+    <h2>Got</h2>
+    {% for g in get %}
+    {{g}}
+    {% endfor %}
+    {% endif %}
+    {% endif %}
+  <script src="js/scripts.js"></script>
+</body>
+</html>

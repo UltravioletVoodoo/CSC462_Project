@@ -1,0 +1,3 @@
+pysyncobj==0.3.4
+redispy==3.0.0
+Flask==1.1.1
