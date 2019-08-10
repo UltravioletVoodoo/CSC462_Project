@@ -65,7 +65,8 @@ def processCommand(red, command):
 #gets stuff from command line, and responds apropriately
 def commandLineOperation(raft):
     global red
-    toRedis = {}
+    print("Commands: get, set, force, info, exit")
+    
     while(True):
         command = input(">> ")
         #display a value
@@ -81,6 +82,7 @@ def commandLineOperation(raft):
             print(red.set(commandSet, commandSetTo))
         #set a key value pair though raft
         elif command == "set":
+            toRedis = {}
             toRedis["command"] = "set"
             toRedis["key"] = input("set>> ")
             toRedis["value"] = input("set:to>> ")
@@ -139,6 +141,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     #connect to local redis
+    print("Redis address: {}:{}".format(args.redis_ip, args.redis_port))
     red = redis.Redis(host=args.redis_ip, port=args.redis_port, db=0)
 
     #set up raft for communication
@@ -158,5 +161,4 @@ if __name__ == "__main__":
         app.run()
     else:
         #start getting redis operations from the command line
-        print("Commands: get, set, force, info, exit")
         commandLineOperation(raft)
