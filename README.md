@@ -7,5 +7,9 @@
 3. Run project with `python project.py node_port [partner1_ip:partner1_port partner2_ip:partner2_port ...]`. A console interface is also available with the `--no-flask` flag. `-i` and `-p` can be used to specify the the Redis database's ip and port respectively. `-s` can be used to specify the port of the flask server.
 4. (If not running `--no-flask`) Connect to any node's flask server at `node_ip:[flask_port]`.
 
+## Instructions - Docker
+1. From the project directory, run `docker image build -t floating-database:latest .`.
+2. Then, run `./docker-generate.sh "node_port [partner1_ip:partner1_port partner2_ip:partner2_port ...]"; docker-compose up`.
+
 ## Future Work
 In the future, a load balancing server could provide the web client, which would contain a templated address to the user's geographically closest node. This allows the node server to run in `--api-mode`, and a more user-friendly, asynchronous web application could be more easily developed.
