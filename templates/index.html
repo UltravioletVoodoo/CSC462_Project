@@ -15,7 +15,7 @@
     <form action="/request", method="GET">
         <input id="radio-get" type="radio" name="cmd" value="get" checked onclick="disableValue();">
         <label for="radio-get">Get</label>
-        <input id="radio-set" type="radio" name="cmd" value="set" onclick = "enableValue();">
+        <input id="radio-set" type="radio" name="cmd" value="set" onclick="enableValue();">
         <label for="radio-set">Set</label>
         <br>
         <input type="text" name="key"> Key</input><br>
@@ -33,6 +33,6 @@
     {% endfor %}
     {% endif %}
     {% endif %}
-  <script src="js/scripts.js"></script>
+  <script src="js/scripts.js" defer></script>
 </body>
 </html>

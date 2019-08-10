@@ -1,7 +1,11 @@
+inputValue = document.getElementById("input-value")
+
 function disableValue(){
-    document.getElementById("input-value").disabled = true;
+    inputValue.disabled = true;
 }
 
 function enableValue(){
-    document.getElementById("input-value").disabled = false;
+    inputValue.disabled = false;
 }
+
+inputValue.disabled = !document.getElementById("radio-set").checked

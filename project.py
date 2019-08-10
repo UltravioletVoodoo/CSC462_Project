@@ -8,6 +8,7 @@ import pysyncobj
 import threading
 import sys
 import argparse
+import json
 from pysyncobj import SyncObj, replicated
 from flask import Flask, escape, request, render_template
 
@@ -65,6 +66,7 @@ def processCommand(red, command):
 #gets stuff from command line, and responds apropriately
 def commandLineOperation(raft):
     global red
+
     print("Commands: get, set, force, info, exit")
     
     while(True):
@@ -96,69 +98,104 @@ def commandLineOperation(raft):
         else:
             print("commandLineOperation: oops")
 
-@app.route('/')
-def webRoot():
-    return render_template('index.html', get=[], noneReturned=False)
-
-@app.route('/request', methods=['GET'])
-def webSet():
+def handleCommand():
     global red
+
     # TODO: Fix obvious injection vulnerability
     key = request.args.get("key")
     value = request.args.get("value")
-
+    
     get = []
-    noneReturned = False
     if str(request.args.get("cmd")).lower() == 'get':
         r_get = red.get(key)
         if r_get is None:
-            noneReturned = True
+            return ('get', None)
         else:
-            get.append(r_get)
+            get.append(r_get.decode('utf-8')) # TODO: encoding may result in errors depending on user input
+            return ('get', get)
     elif str(request.args.get("cmd")).lower() == 'set':
         raft.setRedis(key, value)
+        return ('set', None)
 
-    return render_template('index.html', get=get, noneReturned=noneReturned)
-
-if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print('Usage: %s self_port [partner1_ip:partner1_port ...]' % sys.argv[0])
-        sys.exit(-1)
-
+def prepareArgs():
     def ipPair(arg):
         pair = [x for x in arg.split(':')]
         if(len(pair) is not 2):
             raise argparse.ArgumentTypeError("Must be in format 'ip:port'")
+        #Error checking
         pair[1] = int(pair[1])
-        return pair[:2]
+        return pair[0] + ":" + str(pair[1])
 
     parser = argparse.ArgumentParser()
     parser.add_argument('port', nargs=1, type=int)
-    parser.add_argument('partners', type=ipPair, nargs='+')
+    parser.add_argument('partners', type=ipPair, nargs='*')
     parser.add_argument('-i', '--redis-ip', type=str, default="localhost")
     parser.add_argument('-p', '--redis-port', type=int, default=6379)
+    parser.add_argument('-s', '--flask-port', type=int, default=5000)
     parser.add_argument('--no-flask', action='store_true')
-    args = parser.parse_args()
+    parser.add_argument('--api-mode', action='store_true')
+    return parser.parse_args()
+
+def initFlask(port=5000):
+    global app
+
+    @app.route('/')
+    def webRoot():
+        return render_template('index.html', get=[], noneReturned=False)
+
+    if args.api_mode:
+        @app.route('/request', methods=['GET', 'POST'])
+        def apiCommand():
+            cmd, get = handleCommand()
+            if cmd == 'get':
+                toReturn = {}
+                toReturn["foundElements"] = get is not None
+                toReturn["get"] = get
+                return json.dumps(toReturn)
+            else: # set
+                return '{}'
+    else:
+        @app.route('/request', methods=['GET', 'POST'])
+        def webCommand():
+            cmd, get = handleCommand()
+
+            noneReturned = False
+            if cmd == 'get':
+                if get is None:
+                    noneReturned = True
+            else: # set
+                get = []
+
+            return render_template('index.html', get=get, noneReturned=noneReturned)
+
+    #start flask
+    app.run(host='0.0.0.0', port=port)
+
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print('Usage: %s self_port [partner1_ip:partner1_port ...]' % sys.argv[0])
+        sys.exit(-1)
+
+    args = prepareArgs()
 
     #connect to local redis
     print("Redis address: {}:{}".format(args.redis_ip, args.redis_port))
     red = redis.Redis(host=args.redis_ip, port=args.redis_port, db=0)
 
     #set up raft for communication
-    #TODO:Make it work with more than one partner
-    port = "localhost:%d" % args.port[0]#int(sys.argv[1])
-    partner = ["{}:{}".format(args.partners[0][0], args.partners[0][1])]#(sys.argv[2], int(sys.argv[3]))]
-    print("Current address: {}".format(port))
-    print("Partner addresses: {}".format(partner))
-    raft = Raft(port, partner)
+    selfAddr = "localhost:%d" % args.port[0]
+    print("Current address: {}".format(selfAddr))
+    print("Partner addresses: {}".format(args.partners))
+    raft = Raft(selfAddr, args.partners)
 
     #watch raft to see if another node has updated
     update = threading.Thread(target=updateRedis, args=(red, raft, ), daemon=True)
     update.start()
 
     if not args.no_flask:
-        #start flask
-        app.run()
+        initFlask(port=args.flask_port)
     else:
         #start getting redis operations from the command line
         commandLineOperation(raft)
