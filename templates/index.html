@@ -11,26 +11,32 @@
 </head>
 
 <body>
-    <h1>Floating Database</h1>
-    <form action="/request", method="GET">
-        <input id="radio-get" type="radio" name="cmd" value="get" checked onclick="disableValue();">
-        <label for="radio-get">Get</label>
-        <input id="radio-set" type="radio" name="cmd" value="set" onclick="enableValue();">
-        <label for="radio-set">Set</label>
-        <br>
-        <input type="text" name="key"> Key</input><br>
-        <input id="input-value" type="text" name="value" disabled> Value</input><br>
-        <input type="submit">
-    </form>
+    <div class="input-container">
+        <h1>Floating Database</h1>
+        <form action="/request", method="GET">
+            <input id="radio-get" type="radio" name="cmd" value="get" checked onclick="disableValue();">
+            <label for="radio-get">Get</label>
+            <input id="radio-set" type="radio" name="cmd" value="set" onclick="enableValue();">
+            <label for="radio-set">Set</label>
+            <br>
+            <input type="text" name="key"> Key</input><br>
+            <input id="input-value" type="text" name="value" disabled> Value</input><br>
+            <input type="submit">
+        </form>
+    </div>
 
     {% if noneReturned %}
-    <h2>Nothing matched key</h2>
+    <div class="response-container">
+        <h2 class="no-response">Nothing matched key</h2>
+    </div>
     {% else %}
     {% if get|length > 0 %}
-    <h2>Got</h2>
+    <div class="response-container">
+        <h2>Got</h2>
     {% for g in get %}
-    {{g}}
+        {{g}}
     {% endfor %}
+    </div>
     {% endif %}
     {% endif %}
   <script src="js/scripts.js" defer></script>
