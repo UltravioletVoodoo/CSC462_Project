@@ -9,7 +9,7 @@
 
 ## Instructions - Docker
 1. From the project directory, run `docker image build -t floating-database:latest .`.
-2. Then, run `./docker-generate.sh "node_port [partner1_ip:partner1_port partner2_ip:partner2_port ...]"; docker-compose up`.
+2. Then, run `./docker-generate.sh "node_port [partner1_ip:partner1_port partner2_ip:partner2_port ...]"; docker-compose up`. Optionally, a second parameter can be passed to `./docker-generate.sh` to change the flask port.
 
 ## Future Work
 In the future, a load balancing server could provide the web client, which would contain a templated address to the user's geographically closest node. This allows the node server to run in `--api-mode`, and a more user-friendly, asynchronous web application could be more easily developed.
