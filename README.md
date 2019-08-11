@@ -8,6 +8,8 @@
 4. (If not running `--no-flask`) Connect to any node's flask server at `node_ip:[flask_port]`.
 
 ## Instructions - Docker
+*Notes: You may manually have to modify `docker-compose.yml` to pass ports for your specific deployment.*
+
 1. From the project directory, run `docker image build -t floating-database:latest .`.
 2. Then, run `./docker-generate.sh "node_port [partner1_ip:partner1_port partner2_ip:partner2_port ...]"; docker-compose up`. Optionally, a second parameter can be passed to `./docker-generate.sh` to change the flask port.
 
